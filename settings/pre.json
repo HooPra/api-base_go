@@ -1,0 +1,5 @@
+{
+  "PrivateKeyPath": "/settings/keys/private_key",
+  "PublicKeyPath": "/settings/keys/public_key.pub",
+  "JWTExpirationDelta": 72
+}
