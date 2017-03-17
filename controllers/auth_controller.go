@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	"errors"
+
 	"github.com/hoopra/GoAuthServer/authorization"
 	"github.com/hoopra/GoAuthServer/datastore"
 	"github.com/hoopra/GoAuthServer/models"
@@ -18,6 +20,11 @@ func Register(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	err := UnpackJSONBody(req, &user)
 	if err != nil {
 		responder.RespondWithError(err)
+		return
+	}
+
+	if user.Username == "" || user.Password == "" {
+		responder.RespondWithError(errors.New("No data supplied for user"))
 		return
 	}
 
@@ -39,6 +46,11 @@ func Login(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	err := UnpackJSONBody(req, &user)
 	if err != nil {
 		responder.RespondWithError(err)
+		return
+	}
+
+	if user.Username == "" || user.Password == "" {
+		responder.RespondWithError(errors.New("No credentials supplied for login"))
 		return
 	}
 
