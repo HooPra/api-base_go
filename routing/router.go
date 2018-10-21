@@ -3,7 +3,7 @@ package routing
 import (
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
-	"github.com/hoopra/GoAuthServer/authorization"
+	"github.com/hoopra/api-base_go/authorization"
 )
 
 type route struct {

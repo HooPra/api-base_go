@@ -1,6 +1,6 @@
 package routing
 
-import "github.com/hoopra/GoAuthServer/controllers"
+import "github.com/hoopra/api-base_go/controllers"
 
 // Port on which this router should listen
 var Port = ":8000"

@@ -1,10 +1,6 @@
 package authorization
 
 import (
-	"github.com/hoopra/GoAuthServer/datastore"
-	"github.com/hoopra/GoAuthServer/models"
-	"github.com/hoopra/GoAuthServer/settings"
-
 	"bufio"
 	"crypto/rsa"
 	"crypto/x509"
@@ -13,26 +9,29 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/hoopra/api-base_go/datastore"
+	"github.com/hoopra/api-base_go/models"
+	"github.com/hoopra/api-base_go/settings"
 	"github.com/satori/go.uuid"
 )
 
 // JWTKeyInstance is a container for this server's
 // public and private JWT keys
-type JWTKeyInstance struct {
+type jwtKeyInstance struct {
 	privateKey *rsa.PrivateKey
 	PublicKey  *rsa.PublicKey
 }
 
 const (
-	tokenDuration = 72
-	expireOffset  = 3600
+	expireOffset = 3600
 )
 
-var keyInstance *JWTKeyInstance = nil
+var keyInstance *jwtKeyInstance
 
-func GetJWTKeyInstance() *JWTKeyInstance {
+// GetJWTKeyInstance returns a standard instance of a JWT key
+func getJWTKeyInstance() *jwtKeyInstance {
 	if keyInstance == nil {
-		keyInstance = &JWTKeyInstance{
+		keyInstance = &jwtKeyInstance{
 			privateKey: getPrivateKey(),
 			PublicKey:  getPublicKey(),
 		}
@@ -41,9 +40,10 @@ func GetJWTKeyInstance() *JWTKeyInstance {
 	return keyInstance
 }
 
-// GenerateToken returns a JWT signed by this server
-func (backend *JWTKeyInstance) GenerateToken(uuid uuid.UUID) (string, error) {
+// GenerateAccessToken returns a JWT signed by this server
+func GenerateAccessToken(uuid uuid.UUID) (string, error) {
 
+	keyInstance := getJWTKeyInstance()
 	token := jwt.New(jwt.SigningMethodRS512)
 
 	claims := make(jwt.MapClaims)
@@ -53,17 +53,17 @@ func (backend *JWTKeyInstance) GenerateToken(uuid uuid.UUID) (string, error) {
 	claims["iss"] = settings.Issuer
 	token.Claims = claims
 
-	tokenString, err := token.SignedString(backend.privateKey)
+	tokenString, err := token.SignedString(keyInstance.privateKey)
 	if err != nil {
-		panic(err)
-		// return "", err
+		// panic(err)
+		return "", err
 	}
 	return tokenString, nil
 }
 
 // GetUUIDFromToken returns the UUID of the user
 // for which a token was issued
-func (backend *JWTKeyInstance) GetUUIDFromToken(token *jwt.Token) uuid.UUID {
+func GetUUIDFromToken(token *jwt.Token) uuid.UUID {
 
 	claims := token.Claims.(jwt.MapClaims)
 	idString := claims["sub"].(string)
@@ -78,13 +78,14 @@ func (backend *JWTKeyInstance) GetUUIDFromToken(token *jwt.Token) uuid.UUID {
 
 // Authenticate returns true if a user exists
 // in the datastore
-func (backend *JWTKeyInstance) Authenticate(user *models.User) bool {
+func Authenticate(user *models.User) bool {
 
 	success := datastore.Store().Users().Validate(user)
 	return success
 }
 
-func (backend *JWTKeyInstance) getTokenRemainingValidity(timestamp interface{}) int {
+func getTokenRemainingValidity(timestamp interface{}) int {
+
 	if validity, ok := timestamp.(float64); ok {
 		tm := time.Unix(int64(validity), 0)
 		remainer := tm.Sub(time.Now())
@@ -96,7 +97,7 @@ func (backend *JWTKeyInstance) getTokenRemainingValidity(timestamp interface{}) 
 	return expireOffset
 }
 
-func (backend *JWTKeyInstance) validateToken(token *jwt.Token) bool {
+func validateToken(token *jwt.Token) bool {
 
 	claims := token.Claims.(jwt.MapClaims)
 	issuer := claims["iss"].(string)

@@ -3,7 +3,7 @@ package datastore
 import (
 	"errors"
 
-	"github.com/hoopra/GoAuthServer/models"
+	"github.com/hoopra/api-base_go/models"
 	uuid "github.com/satori/go.uuid"
 )
 

@@ -23,7 +23,7 @@ type Settings struct {
 	JWTExpirationDelta int
 }
 
-var settings Settings = Settings{}
+var settings = Settings{}
 var env = "dev"
 
 // Init settings for the current environment

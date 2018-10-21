@@ -1,13 +1,12 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 
-	"errors"
-
-	"github.com/hoopra/GoAuthServer/authorization"
-	"github.com/hoopra/GoAuthServer/datastore"
-	"github.com/hoopra/GoAuthServer/models"
+	auth "github.com/hoopra/api-base_go/authorization"
+	"github.com/hoopra/api-base_go/datastore"
+	"github.com/hoopra/api-base_go/models"
 )
 
 // Register adds a user to the datastore if one
@@ -60,9 +59,8 @@ func Login(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 		return
 	}
 
-	keyInstance := authorization.GetJWTKeyInstance()
-	if keyInstance.Authenticate(user) {
-		token, err := keyInstance.GenerateToken(id)
+	if auth.Authenticate(user) {
+		token, err := auth.GenerateAccessToken(id)
 		responder.RespondWithToken(token, err)
 		return
 	}
@@ -70,7 +68,7 @@ func Login(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	responder.RespondWithStatus(http.StatusUnauthorized)
 }
 
-// Refresh issues a new JWT if the request
+// RefreshToken issues a new JWT if the request
 // already contains a valid one
 func RefreshToken(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 
@@ -81,8 +79,7 @@ func RefreshToken(w http.ResponseWriter, req *http.Request, next http.HandlerFun
 	// decoder := json.NewDecoder(req.Body)
 	// decoder.Decode(&requestUser)
 
-	keyInstance := authorization.GetJWTKeyInstance()
-	token, err := keyInstance.GenerateToken(user.UUID)
+	token, err := auth.GenerateAccessToken(user.UUID)
 	if err == nil {
 		responder.RespondWithToken(token, err)
 		return
@@ -95,7 +92,7 @@ func RefreshToken(w http.ResponseWriter, req *http.Request, next http.HandlerFun
 func Logout(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 
 	responder := models.NewHTTPResponder(w)
-	_, err := authorization.GetTokenFromRequest(req)
+	_, err := auth.GetTokenFromRequest(req)
 	if err != nil {
 		responder.RespondWithStatus(http.StatusInternalServerError)
 	}

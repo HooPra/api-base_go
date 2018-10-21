@@ -2,22 +2,20 @@ package authorization
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
-	"log"
-
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
-	"github.com/hoopra/GoAuthServer/models"
+	"github.com/hoopra/api-base_go/models"
 )
 
-// RequireTokenAuthentication is a middleware component that
-// validates the JWT of a request and calls a secured handler
-// function if successful
+// RequireTokenAuthentication ivalidates the JWT of a request
+// and calls a handler if successful
 func RequireTokenAuthentication(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 
-	// Loop through headers
+	// Print headers
 	for name, headers := range req.Header {
 		name = strings.ToLower(name)
 		for _, h := range headers {
@@ -26,11 +24,10 @@ func RequireTokenAuthentication(w http.ResponseWriter, req *http.Request, next h
 	}
 
 	responder := models.NewHTTPResponder(w)
-	keyInstance := GetJWTKeyInstance()
 	token, err := GetTokenFromRequest(req)
 
 	if err == nil {
-		valid := keyInstance.validateToken(token)
+		valid := validateToken(token)
 		if valid {
 			next(w, req)
 			return
@@ -51,7 +48,6 @@ func GetTokenFromRequest(req *http.Request) (*jwt.Token, error) {
 func keyFunction(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-	} else {
-		return keyInstance.PublicKey, nil
 	}
+	return keyInstance.PublicKey, nil
 }

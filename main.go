@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/codegangsta/negroni"
-	"github.com/hoopra/GoAuthServer/routing"
-	"github.com/hoopra/GoAuthServer/settings"
+	"github.com/hoopra/api-base_go/routing"
+	"github.com/hoopra/api-base_go/settings"
 	"github.com/rs/cors"
 )
 

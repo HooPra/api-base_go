@@ -6,8 +6,7 @@ import (
 	"net/http"
 )
 
-// UnpackJSONBody returns the JSON body posted
-// in an HTTP request
+// UnpackJSONBody unpacks JSON from req.Body to an interface
 func UnpackJSONBody(req *http.Request, in interface{}) error {
 
 	body, err := ioutil.ReadAll(req.Body)

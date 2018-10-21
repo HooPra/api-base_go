@@ -3,16 +3,16 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/hoopra/GoAuthServer/authorization"
-	"github.com/hoopra/GoAuthServer/datastore"
-	"github.com/hoopra/GoAuthServer/models"
+	auth "github.com/hoopra/api-base_go/authorization"
+	"github.com/hoopra/api-base_go/datastore"
+	"github.com/hoopra/api-base_go/models"
 )
 
 // UpdateName changes the name of a user in the datastore
 func UpdateName(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 
 	responder := models.NewHTTPResponder(w)
-	token, err := authorization.GetTokenFromRequest(req)
+	token, err := auth.GetTokenFromRequest(req)
 
 	if err != nil {
 		responder.RespondWithStatus(http.StatusUnauthorized)
@@ -26,8 +26,7 @@ func UpdateName(w http.ResponseWriter, req *http.Request, next http.HandlerFunc)
 		return
 	}
 
-	keyInstance := authorization.GetJWTKeyInstance()
-	id := keyInstance.GetUUIDFromToken(token)
+	id := auth.GetUUIDFromToken(token)
 
 	err = datastore.Store().Users().UpdateName(id, user.Username)
 
@@ -43,7 +42,7 @@ func UpdateName(w http.ResponseWriter, req *http.Request, next http.HandlerFunc)
 func UpdatePassword(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 
 	responder := models.NewHTTPResponder(w)
-	token, err := authorization.GetTokenFromRequest(req)
+	token, err := auth.GetTokenFromRequest(req)
 
 	if err != nil {
 		responder.RespondWithStatus(http.StatusUnauthorized)
@@ -57,8 +56,7 @@ func UpdatePassword(w http.ResponseWriter, req *http.Request, next http.HandlerF
 		return
 	}
 
-	keyInstance := authorization.GetJWTKeyInstance()
-	id := keyInstance.GetUUIDFromToken(token)
+	id := auth.GetUUIDFromToken(token)
 
 	err = datastore.Store().Users().UpdatePassword(id, user.Password)
 
