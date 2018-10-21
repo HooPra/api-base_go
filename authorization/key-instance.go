@@ -22,9 +22,9 @@ type jwtKeyInstance struct {
 	PublicKey  *rsa.PublicKey
 }
 
-const (
-	expireOffset = 3600
-)
+// const (
+// 	expireOffset = 3600
+// )
 
 var keyInstance *jwtKeyInstance
 
@@ -84,18 +84,18 @@ func Authenticate(user *models.User) bool {
 	return success
 }
 
-func getTokenRemainingValidity(timestamp interface{}) int {
+// func getTokenRemainingValidity(timestamp interface{}) int {
 
-	if validity, ok := timestamp.(float64); ok {
-		tm := time.Unix(int64(validity), 0)
-		remainer := tm.Sub(time.Now())
-		if remainer > 0 {
-			return int(remainer.Seconds() + expireOffset)
-		}
-	}
+// 	if validity, ok := timestamp.(float64); ok {
+// 		tm := time.Unix(int64(validity), 0)
+// 		remainder := tm.Sub(time.Now())
+// 		if remainder > 0 {
+// 			return int(remainder.Seconds() + expireOffset)
+// 		}
+// 	}
 
-	return expireOffset
-}
+// 	return expireOffset
+// }
 
 func validateToken(token *jwt.Token) bool {
 
@@ -154,10 +154,8 @@ func getPublicKey() *rsa.PublicKey {
 	pemfileinfo, _ := publicKeyFile.Stat()
 	var size int64 = pemfileinfo.Size()
 	pembytes := make([]byte, size)
-
 	buffer := bufio.NewReader(publicKeyFile)
 	_, err = buffer.Read(pembytes)
-
 	data, _ := pem.Decode([]byte(pembytes))
 
 	publicKeyFile.Close()

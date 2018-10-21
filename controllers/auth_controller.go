@@ -55,7 +55,8 @@ func Login(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 
 	id, err := datastore.Store().Users().GetUUIDByName(user.Username)
 	if err != nil {
-		responder.RespondWithError(err)
+		// responder.RespondWithError(err)
+		responder.RespondWithStatus(http.StatusUnauthorized)
 		return
 	}
 
