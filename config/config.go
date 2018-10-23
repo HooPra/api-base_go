@@ -47,15 +47,17 @@ func Init() {
 
 	priOvr := os.Getenv("AUTH_PRIVATE_KEY_PATH")
 	pubOvr := os.Getenv("AUTH_PUBLIC_KEY_PATH")
-	if priOvr != "" && pubOvr != "" {
-		config.PrivateKeyPath = priOvr
+	if priOvr != "" {
+		config.PublicKeyPath = pubOvr
+	}
+	if pubOvr != "" {
 		config.PublicKeyPath = pubOvr
 	}
 
 	config.Env = env
 }
 
-// GetConfig returns the current config settings
+// Get returns the current config settings
 func Get() Config {
 	if &config == nil {
 		Init()
