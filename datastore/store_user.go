@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/hoopra/api-base_go/models"
+	"github.com/hoopra/api-base_go/utils"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -42,7 +43,7 @@ func (store UserDBStore) Add(user *models.User) error {
 	id := uuid.NewV4()
 	newUser.UUID = id
 	newUser.Username = user.Username
-	hash, err := HashPassword(user.Password)
+	hash, err := utils.HashPassword(user.Password)
 
 	if err != nil {
 		return err
@@ -61,7 +62,7 @@ func (store UserDBStore) Validate(user *models.User) bool {
 		return false
 	}
 
-	err := CompareHashAndPassword(dbUser.Hash, user.Password)
+	err := utils.CompareHashAndPassword(dbUser.Hash, user.Password)
 	if dbUser.Username == user.Username && err == nil {
 		return true
 	}
@@ -87,7 +88,7 @@ func (store UserDBStore) UpdatePassword(id uuid.UUID, newPassword string) error 
 		return errors.New("No such user")
 	}
 
-	hash, err := HashPassword(newPassword)
+	hash, err := utils.HashPassword(newPassword)
 	if err != nil {
 		return err
 	}

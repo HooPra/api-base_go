@@ -8,6 +8,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
+	"github.com/hoopra/api-base_go/config"
 	"github.com/hoopra/api-base_go/models"
 )
 
@@ -51,5 +52,5 @@ func keyFunction(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 		return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 	}
-	return keyInstance.PublicKey, nil
+	return config.GetJWTKeyPair().PublicKey, nil
 }

@@ -3,19 +3,17 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/codegangsta/negroni"
+	"github.com/hoopra/api-base_go/config"
 	"github.com/hoopra/api-base_go/routing"
-	"github.com/hoopra/api-base_go/settings"
 	"github.com/rs/cors"
 )
 
 func main() {
 
-	// Set up environment
-	os.Setenv("GO_ENV", "dev")
-	settings.Init()
+	// Configure instance
+	config.Init()
 
 	// Create router
 	router := routing.GetRouting()

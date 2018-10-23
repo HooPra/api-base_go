@@ -61,7 +61,7 @@ func Login(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	}
 
 	if auth.Authenticate(user) {
-		token, err := auth.GenerateAccessToken(id)
+		token, err := auth.IssueJWT(id)
 		responder.RespondWithToken(token, err)
 		return
 	}
@@ -80,7 +80,7 @@ func RefreshToken(w http.ResponseWriter, req *http.Request, next http.HandlerFun
 	// decoder := json.NewDecoder(req.Body)
 	// decoder.Decode(&requestUser)
 
-	token, err := auth.GenerateAccessToken(user.UUID)
+	token, err := auth.IssueJWT(user.UUID)
 	if err == nil {
 		responder.RespondWithToken(token, err)
 		return
