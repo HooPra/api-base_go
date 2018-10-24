@@ -2,38 +2,48 @@ package datastore
 
 import (
 	"database/sql"
-	"fmt"
 )
 
-var (
+type Database interface {
+	Rollback()
+}
+
+struct Datastore {
 	connection *sql.DB
-	connStr    = fmt.Sprintf("postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full")
-)
+	users      *Userstore
+}
 
-// type Datastore interface {
-// 	Users() *sql.DB
-// }
+var datastore Datastore
 
-// var db struct {
-// 	connection
-// }
-
-func Users() Userstore {
-
-	if userstore == nil {
-		userstore = newUserstore(Connection())
+func getDatastore() *Datastore {
+	if datastore == nil {
+		datastore = newDefaultDatabase()
 	}
-	return userstore
+	return datastore
+}
+
+func newDefaultDatastore() *Datastore {
+	conn, err := connect()
+	if err != nil {
+		panic("cannot connect to db")
+	}
+	datastore = {
+		connection: conn
+		users: newUserStore(conn)
+	}
 }
 
 // Connection returns a connection to the underlying database
-func Connection() *sql.DB {
-	if connection == nil {
-		conn, err := sql.Open("postgres", connStr)
-		if err != nil {
-			panic("could not connect to db")
-		}
-		connection = conn
+func connect() *sql.DB {
+	// TODO read credentials from file
+	// TODO accept multiple driver types
+	// conn, err := sql.Open("postgres", "postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full")
+	conn, err := sql.Open("mysql", "user:password@/authapi")
+	if err != nil {
+		panic("could not connect to db")
 	}
-	return connection
+	return conn
 }
+
+/* Native functionality */
+func (db *Datastore) Rollback() {}
