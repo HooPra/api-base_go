@@ -1,14 +1,30 @@
 package datastore
 
 import (
+	"database/sql"
 	"errors"
+	"log"
 
 	"github.com/hoopra/api-base_go/models"
 	"github.com/hoopra/api-base_go/utils"
 	uuid "github.com/satori/go.uuid"
 )
 
-type UserDBStore map[uuid.UUID]*User
+var (
+	userstore Userstore
+)
+
+func newUserstore(conn *sql.DB) Userstore {
+	return UserDBStore{
+		connection: conn,
+	}
+}
+
+type UserDBStore struct {
+	connection *sql.DB
+}
+
+//map[uuid.UUID]*User
 
 type Userstore interface {
 	Add(user *models.User) error
@@ -24,13 +40,9 @@ type User struct {
 	Hash     []byte
 }
 
-func newUserDBStore() UserDBStore {
-	return make(map[uuid.UUID]*User)
-}
-
-func (db database) Users() Userstore {
-	return db.users
-}
+// func newUserDBStore() UserDBStore {
+// 	return make(map[uuid.UUID]*User)
+// }
 
 func (store UserDBStore) Add(user *models.User) error {
 
@@ -122,5 +134,16 @@ func (store UserDBStore) SelectByName(name string) *User {
 
 func (store UserDBStore) SelectByID(id uuid.UUID) *User {
 
-	return store[id]
+	rows, err := store.connection.Query("SELECT * FROM users WHERE id = $1", id)
+	defer rows.Close()
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			log.Fatal(err)
+		}
+	}
+	return &User{
+		UUID: id,
+	}
+	// return store[id]
 }
