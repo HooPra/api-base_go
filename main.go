@@ -6,6 +6,7 @@ import (
 
 	"github.com/codegangsta/negroni"
 	"github.com/hoopra/api-base_go/config"
+	"github.com/hoopra/api-base_go/datastore"
 	"github.com/hoopra/api-base_go/routing"
 	"github.com/rs/cors"
 )
@@ -14,6 +15,9 @@ func main() {
 
 	// Configure instance
 	config.Init()
+
+	// Initialize datastore
+	datastore.Init()
 
 	// Create router
 	router := routing.GetRouting()

@@ -15,6 +15,10 @@ type Datastore struct {
 
 var datastore *Datastore
 
+func Init() {
+	newDefaultDatastore()
+}
+
 func getDatastore() *Datastore {
 	if datastore == nil {
 		datastore = newDefaultDatastore()
