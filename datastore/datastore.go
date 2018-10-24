@@ -8,29 +8,30 @@ type Database interface {
 	Rollback()
 }
 
-struct Datastore {
+type Datastore struct {
 	connection *sql.DB
-	users      *Userstore
+	users      *UserDBStore
 }
 
-var datastore Datastore
+var datastore *Datastore
 
 func getDatastore() *Datastore {
 	if datastore == nil {
-		datastore = newDefaultDatabase()
+		datastore = newDefaultDatastore()
 	}
 	return datastore
 }
 
 func newDefaultDatastore() *Datastore {
-	conn, err := connect()
-	if err != nil {
-		panic("cannot connect to db")
+	conn := connect()
+	// if err != nil {
+	// 	panic("cannot connect to db")
+	// }
+	datastore = &Datastore{
+		connection: conn,
+		users:      newUserStore(conn),
 	}
-	datastore = {
-		connection: conn
-		users: newUserStore(conn)
-	}
+	return datastore
 }
 
 // Connection returns a connection to the underlying database

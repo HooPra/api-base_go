@@ -28,7 +28,7 @@ func UpdateName(w http.ResponseWriter, req *http.Request, next http.HandlerFunc)
 
 	id := auth.GetUUIDFromToken(token)
 
-	err = datastore.Store().Users().UpdateName(id, user.Username)
+	err = datastore.Users().UpdateName(id, user.Username)
 
 	if err != nil {
 		responder.RespondWithError(err)
@@ -58,7 +58,7 @@ func UpdatePassword(w http.ResponseWriter, req *http.Request, next http.HandlerF
 
 	id := auth.GetUUIDFromToken(token)
 
-	err = datastore.Store().Users().UpdatePassword(id, user.Password)
+	err = datastore.Users().UpdatePassword(id, user.Password)
 
 	if err != nil {
 		responder.RespondWithError(err)

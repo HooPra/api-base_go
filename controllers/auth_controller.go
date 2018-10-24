@@ -27,7 +27,7 @@ func Register(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 		return
 	}
 
-	err = datastore.Store().Users().Add(user)
+	err = datastore.Users().Add(user)
 	if err != nil {
 		responder.RespondWithError(err)
 		return
@@ -53,7 +53,7 @@ func Login(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 		return
 	}
 
-	id, err := datastore.Store().Users().GetUUIDByName(user.Username)
+	u, err := datastore.Users().SelectByName(user.Username)
 	if err != nil {
 		// responder.RespondWithError(err)
 		responder.RespondWithStatus(http.StatusUnauthorized)
@@ -61,7 +61,7 @@ func Login(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	}
 
 	if auth.Authenticate(user) {
-		token, err := auth.IssueJWT(id)
+		token, err := auth.IssueJWT(u.UUID)
 		responder.RespondWithToken(token, err)
 		return
 	}

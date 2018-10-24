@@ -49,7 +49,7 @@ func GetUUIDFromToken(token *jwt.Token) uuid.UUID {
 // in the datastore
 func Authenticate(user *models.User) bool {
 
-	success := datastore.Store().Users().Validate(user)
+	success := datastore.Users().Validate(user)
 	return success
 }
 

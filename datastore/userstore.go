@@ -3,7 +3,6 @@ package datastore
 import (
 	"database/sql"
 	"errors"
-	"log"
 
 	"github.com/hoopra/api-base_go/models"
 	"github.com/hoopra/api-base_go/utils"
@@ -15,7 +14,9 @@ type Userstore interface {
 	Validate(user *models.User) bool
 	UpdateName(id uuid.UUID, newName string) error
 	UpdatePassword(id uuid.UUID, newPassword string) error
-	GetUUIDByName(name string) (uuid.UUID, error)
+	// GetUUIDByName(name string) (uuid.UUID, error)
+	SelectByID(id uuid.UUID) (*User, error)
+	SelectByName(name string) (*User, error)
 }
 
 type User struct {
@@ -34,9 +35,9 @@ func newUserStore(db *sql.DB) *UserDBStore {
 
 func (s *UserDBStore) Add(user *models.User) error {
 
-	existing := store.SelectByName(user.Username)
+	existing, err := s.SelectByName(user.Username)
 	if existing != nil {
-		return errors.New("A user with that name already exists.")
+		return errors.New("a user with that name already exists")
 	}
 
 	hash, err := utils.HashPassword(user.Password)
@@ -44,12 +45,12 @@ func (s *UserDBStore) Add(user *models.User) error {
 		return err
 	}
 	newUser := User{
-		UUID: uuid.NewV4()
-		Username: user.Username
-		Hash: hash
+		UUID:     uuid.NewV4(),
+		Username: user.Username,
+		Hash:     hash,
 	}
 
-	err := s.db.Exec("INSERT INTO users (id, name, hash) VALUES ($1, NULLIF($2,''), $3)",
+	_, err = s.db.Exec("INSERT INTO users (id, name, hash) VALUES ($1, NULLIF($2,''), $3)",
 		newUser.UUID,
 		newUser.Username,
 		newUser.Hash,
@@ -60,12 +61,12 @@ func (s *UserDBStore) Add(user *models.User) error {
 
 func (s *UserDBStore) Validate(user *models.User) bool {
 
-	dbUser := store.SelectByName(user.Username)
+	dbUser, err := s.SelectByName(user.Username)
 	if dbUser == nil {
 		return false
 	}
 
-	err := utils.CompareHashAndPassword(dbUser.Hash, user.Password)
+	err = utils.CompareHashAndPassword(dbUser.Hash, user.Password)
 	if dbUser.Username == user.Username && err == nil {
 		return true
 	}
@@ -77,7 +78,7 @@ func (s *UserDBStore) UpdateName(id uuid.UUID, newName string) error {
 
 	_, err := s.db.Exec(`UPDATE users SET name = $1 WHERE id = $2`,
 		newName,
-		uuid,
+		id,
 	)
 
 	return err
@@ -90,28 +91,28 @@ func (s *UserDBStore) UpdatePassword(id uuid.UUID, newPassword string) error {
 		return err
 	}
 
-	_, err := s.db.Exec(`UPDATE users SET password_hash = $1 WHERE id = $2`,
+	_, err = s.db.Exec(`UPDATE users SET password_hash = $1 WHERE id = $2`,
 		hash,
-		uuid,
+		id,
 	)
 
 	return err
 }
 
-func (s *UserDBStore) GetUUIDByName(name string) (uuid.UUID, error) {
+// func (s *UserDBStore) GetUUIDByName(name string) (uuid.UUID, error) {
 
-	user := store.SelectByName(name)
-	if user == nil {
-		return uuid.FromStringOrNil(""), errors.New("No such user")
-	}
+// 	user, err := s.SelectByName(name)
+// 	if user == nil {
+// 		return uuid.FromStringOrNil(""), errors.New("no such user")
+// 	}
 
-	return user.UUID, nil
-}
+// 	return user.UUID, nil
+// }
 
-func (s *UserDBStore) SelectByName(name string) *User, err {
+func (s *UserDBStore) SelectByName(name string) (*User, error) {
 
 	user := User{}
-	err := s.tx.QueryRow(`SELECT (id, name, password_hash) FROM users WHERE name = $1`,
+	err := s.db.QueryRow(`SELECT (id, name, password_hash) FROM users WHERE name = $1`,
 		name,
 	).Scan(
 		&user.UUID,
@@ -122,10 +123,10 @@ func (s *UserDBStore) SelectByName(name string) *User, err {
 	return &user, err
 }
 
-func (s *UserDBStore) SelectByID(id uuid.UUID) *User {
+func (s *UserDBStore) SelectByID(id uuid.UUID) (*User, error) {
 
-	user := User{ UUID: id }
-	err := s.tx.QueryRow(`SELECT (name, password_hash) FROM users WHERE id = $1`,
+	user := User{UUID: id}
+	err := s.db.QueryRow(`SELECT (name, password_hash) FROM users WHERE id = $1`,
 		id,
 	).Scan(
 		&user.Username,

@@ -1,9 +1,6 @@
 package datastore
 
 func Users() Userstore {
-	if userstore == nil {
-		db := getDatastore()
-		userstore = db.users
-	}
-	return userstore
+	db := getDatastore()
+	return db.users
 }
