@@ -53,8 +53,8 @@ func Login(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 		return
 	}
 
-	u, err := datastore.Users().SelectByName(user.Username)
-	if err != nil {
+	u := datastore.Users().SelectByName(user.Username)
+	if u == nil {
 		// responder.RespondWithError(err)
 		responder.RespondWithStatus(http.StatusUnauthorized)
 		return

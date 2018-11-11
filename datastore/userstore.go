@@ -3,6 +3,7 @@ package datastore
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/hoopra/api-base_go/models"
 	"github.com/hoopra/api-base_go/utils"
@@ -15,8 +16,8 @@ type Userstore interface {
 	UpdateName(id uuid.UUID, newName string) error
 	UpdatePassword(id uuid.UUID, newPassword string) error
 	// GetUUIDByName(name string) (uuid.UUID, error)
-	SelectByID(id uuid.UUID) (*User, error)
-	SelectByName(name string) (*User, error)
+	SelectByID(id uuid.UUID) *User
+	SelectByName(name string) *User
 }
 
 type User struct {
@@ -35,7 +36,8 @@ func newUserStore(db *sql.DB) *UserDBStore {
 
 func (s *UserDBStore) Add(user *models.User) error {
 
-	existing, err := s.SelectByName(user.Username)
+	existing := s.SelectByName(user.Username)
+
 	if existing != nil {
 		return errors.New("a user with that name already exists")
 	}
@@ -44,13 +46,19 @@ func (s *UserDBStore) Add(user *models.User) error {
 	if err != nil {
 		return err
 	}
+
+	id, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
 	newUser := User{
-		UUID:     uuid.NewV4(),
+		UUID:     id,
 		Username: user.Username,
 		Hash:     hash,
 	}
 
-	_, err = s.db.Exec("INSERT INTO users (id, name, hash) VALUES ($1, NULLIF($2,''), $3)",
+	_, err = s.db.Exec("INSERT INTO users (id, name, password_hash) VALUES ($1, NULLIF($2,''), $3)",
 		newUser.UUID,
 		newUser.Username,
 		newUser.Hash,
@@ -61,12 +69,12 @@ func (s *UserDBStore) Add(user *models.User) error {
 
 func (s *UserDBStore) Validate(user *models.User) bool {
 
-	dbUser, err := s.SelectByName(user.Username)
+	dbUser := s.SelectByName(user.Username)
 	if dbUser == nil {
 		return false
 	}
 
-	err = utils.CompareHashAndPassword(dbUser.Hash, user.Password)
+	err := utils.CompareHashAndPassword(dbUser.Hash, user.Password)
 	if dbUser.Username == user.Username && err == nil {
 		return true
 	}
@@ -109,29 +117,38 @@ func (s *UserDBStore) UpdatePassword(id uuid.UUID, newPassword string) error {
 // 	return user.UUID, nil
 // }
 
-func (s *UserDBStore) SelectByName(name string) (*User, error) {
+func (s *UserDBStore) SelectByName(name string) *User {
 
 	user := User{}
-	err := s.db.QueryRow(`SELECT (id, name, password_hash) FROM users WHERE name = $1`,
+	row := s.db.QueryRow(`SELECT id, name, password_hash FROM users WHERE name = $1`,
 		name,
-	).Scan(
-		&user.UUID,
-		&user.Username,
-		&user.Hash,
 	)
 
-	return &user, err
+	switch err := row.Scan(&user.UUID, &user.Username, &user.Hash); err {
+	case sql.ErrNoRows:
+		return nil
+		// case nil:
+		// default:
+	}
+
+	return &user
 }
 
-func (s *UserDBStore) SelectByID(id uuid.UUID) (*User, error) {
+func (s *UserDBStore) SelectByID(id uuid.UUID) *User {
 
 	user := User{UUID: id}
-	err := s.db.QueryRow(`SELECT (name, password_hash) FROM users WHERE id = $1`,
+	row := s.db.QueryRow(`SELECT (name, password_hash) FROM users WHERE id = $1`,
 		id,
-	).Scan(
-		&user.Username,
-		&user.Hash,
 	)
 
-	return &user, err
+	switch err := row.Scan(&user.Username, &user.Hash); err {
+	case sql.ErrNoRows:
+		fmt.Println("No rows were returned!")
+		return nil
+	case nil:
+	default:
+		panic(err)
+	}
+
+	return &user
 }

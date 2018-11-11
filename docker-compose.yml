@@ -1,0 +1,25 @@
+version: '3.5'
+
+services:
+
+  psql:
+    image: postgres:11.0
+    environment:
+      # POSTGRES_USER: goapi
+      # POSTGRES_DB: goapi
+      POSTGRES_PASSWORD: abc123
+  api-go:
+    # container_name: api-go
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: api-go
+    depends_on:
+      - psql
+    volumes:
+      - '.:/usr/src/app'
+      - '/usr/src/app/node_modules'
+    ports:
+      - '8000:8000'
+    environment:
+      - NODE_ENV=development
