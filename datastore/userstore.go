@@ -137,7 +137,7 @@ func (s *UserDBStore) SelectByName(name string) *User {
 func (s *UserDBStore) SelectByID(id uuid.UUID) *User {
 
 	user := User{UUID: id}
-	row := s.db.QueryRow(`SELECT (name, password_hash) FROM users WHERE id = $1`,
+	row := s.db.QueryRow(`SELECT name, password_hash FROM users WHERE id = $1`,
 		id,
 	)
 
